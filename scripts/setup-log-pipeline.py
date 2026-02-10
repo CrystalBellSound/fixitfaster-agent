@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-log-demo 파이프라인 생성 (Python)
-- 동작하는 API 구조로 파이프라인 생성 (grok match_rules만 사용, support_rules 없음)
-- .env.local 에서 DATADOG_API_KEY, DATADOG_APP_KEY 읽기
+log-demo pipeline setup (Python)
+- Create pipeline via API (grok match_rules only)
+- Reads DATADOG_API_KEY, DATADOG_APP_KEY from .env.local
 """
 import os
 import sys
@@ -13,7 +13,7 @@ import urllib.error
 def load_env():
     env_path = os.path.join(os.path.dirname(__file__), "..", ".env.local")
     if not os.path.isfile(env_path):
-        print("❌ .env.local 을 찾을 수 없습니다.")
+        print("❌ .env.local not found.")
         sys.exit(1)
     env = {}
     with open(env_path) as f:
@@ -31,7 +31,7 @@ def main():
     site = env.get("DATADOG_SITE", "datadoghq.com")
 
     if not api_key or not app_key:
-        print("❌ .env.local 에 DATADOG_API_KEY, DATADOG_APP_KEY 가 필요합니다.")
+        print("❌ DATADOG_API_KEY and DATADOG_APP_KEY are required in .env.local")
         sys.exit(1)
 
     api_url = f"https://api.{site}/api/v1/logs/config/pipelines"
@@ -80,7 +80,7 @@ def main():
         with urllib.request.urlopen(req) as resp:
             existing = json.load(resp)
     except urllib.error.HTTPError as e:
-        print(f"❌ 파이프라인 목록 조회 실패: {e.code}")
+        print(f"❌ Failed to list pipelines: {e.code}")
         print(e.read().decode())
         sys.exit(1)
 
@@ -92,7 +92,7 @@ def main():
 
     body = json.dumps(pipeline).encode("utf-8")
     if log_demo_id:
-        print(f"🔄 기존 파이프라인 업데이트 (ID: {log_demo_id})...")
+        print(f"🔄 Updating existing pipeline (ID: {log_demo_id})...")
         req = urllib.request.Request(
             f"{api_url}/{log_demo_id}",
             data=body,
@@ -104,7 +104,7 @@ def main():
             },
         )
     else:
-        print("➕ 새 파이프라인 생성...")
+        print("➕ Creating new pipeline...")
         req = urllib.request.Request(
             api_url,
             data=body,
@@ -120,19 +120,18 @@ def main():
         with urllib.request.urlopen(req) as resp:
             result = json.load(resp)
             if result.get("id"):
-                print("✅ 파이프라인 생성/업데이트 완료!")
-                print("   Logs → Configuration → Pipelines → 'log-demo (Asia/Seoul Timezone)'")
+                print("✅ Pipeline created/updated.")
                 return
     except urllib.error.HTTPError as e:
         err_body = e.read().decode()
-        print("❌ 오류 발생:")
+        print("❌ Error:")
         try:
             print(json.dumps(json.loads(err_body), indent=2, ensure_ascii=False))
         except Exception:
             print(err_body)
         sys.exit(1)
 
-    print("❌ 응답에 id가 없습니다.")
+    print("❌ Response missing id.")
     sys.exit(1)
 
 if __name__ == "__main__":
