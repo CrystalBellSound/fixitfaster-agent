@@ -1,0 +1,7 @@
+{
+  "name": "correlation-demo",
+  "private": true,
+  "dependencies": {
+    "dd-trace": "^5.8.0"
+  }
+}

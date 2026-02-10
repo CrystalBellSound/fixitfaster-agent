@@ -1,0 +1,79 @@
+# Datadog Agent – 트레이스 + 로그 + 메트릭 수집 "정상 환경"용
+# 사용: .env.local 에 DATADOG_API_KEY 넣고 → npm run agent:up (또는 docker compose --env-file .env.local up -d)
+#
+# 시나리오별 데모 컨테이너:
+#   - trace-demo: APM 트레이스 전송 (15초마다)
+#   - log-demo: 타임존 포함 로그 출력 (10초마다) → 파싱 시나리오용
+#   - correlation-demo: Trace-Log correlation (10초마다)
+#   - metrics-demo: DogStatsD 커스텀 메트릭 (10초마다)
+
+services:
+  agent:
+    image: datadog/agent:7
+    container_name: fixitfaster-agent
+    hostname: fixitfaster-agent
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=${DATADOG_SITE:-datadoghq.com}
+      - DD_HOSTNAME=fixitfaster-agent
+      # APM (트레이스)
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      # Logs
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_INCLUDE=*
+      - DD_CONTAINER_EXCLUDE=name:fixitfaster-agent
+      # DogStatsD (커스텀 메트릭)
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      # 기타
+      - DD_PROCESS_AGENT_ENABLED=false
+    ports:
+      - "8126:8126"   # APM trace intake
+      - "8125:8125/udp"  # DogStatsD
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+
+  # [시나리오 1] APM 트레이스: 15초마다 Agent(8126)로 스팬 전송
+  trace-demo:
+    build: ./trace-demo
+    container_name: fixitfaster-trace-demo
+    environment:
+      - DD_ENV=development
+    depends_on:
+      - agent
+    restart: unless-stopped
+
+  # [시나리오 2] 로그 타임존 파싱: Asia/Seoul 타임스탬프 로그 출력
+  log-demo:
+    build: ./log-demo
+    container_name: fixitfaster-log-demo
+    environment:
+      - LOG_TIMEZONE=Asia/Seoul
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "log-demo", "service": "log-demo"}]'
+    restart: unless-stopped
+
+  # [시나리오 3] Trace-Log Correlation: 트레이스 + 로그에 trace_id 삽입
+  correlation-demo:
+    build: ./correlation-demo
+    container_name: fixitfaster-correlation-demo
+    environment:
+      - DD_ENV=development
+      - DD_LOGS_INJECTION=true
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "nodejs", "service": "correlation-demo"}]'
+    depends_on:
+      - agent
+    restart: unless-stopped
+
+  # [시나리오 4] 커스텀 메트릭: DogStatsD로 메트릭 전송
+  metrics-demo:
+    build: ./metrics-demo
+    container_name: fixitfaster-metrics-demo
+    environment:
+      - DD_ENV=development
+    depends_on:
+      - agent
+    restart: unless-stopped
