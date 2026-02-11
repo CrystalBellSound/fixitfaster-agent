@@ -4,7 +4,7 @@
   "private": true,
   "description": "Datadog Agent + demo containers for Fix It Faster hands-on",
   "scripts": {
-    "up": "docker compose --env-file .env.local up -d",
+    "up": "docker compose --env-file .env.local up -d --build",
     "down": "docker compose --env-file .env.local down",
     "logs": "docker compose --env-file .env.local logs -f agent",
     "pipeline:setup": "bash scripts/setup-log-pipeline.sh",
