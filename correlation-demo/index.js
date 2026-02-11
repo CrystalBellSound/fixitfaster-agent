@@ -3,12 +3,14 @@
  * - 트레이스 전송 + 로그에 trace_id/span_id 삽입
  * - DD_LOGS_INJECTION=true 시 자동으로 correlation 됨
  */
+const logsInjectionEnabled = process.env.DD_LOGS_INJECTION !== 'false';
+
 const tracer = require('dd-trace').init({
   service: 'correlation-demo',
   env: process.env.DD_ENV || 'development',
   hostname: 'agent',
   port: 8126,
-  logInjection: process.env.DD_LOGS_INJECTION !== 'false', // 기본 true
+  logInjection: logsInjectionEnabled,
 });
 
 const intervalMs = 5000; // every 5s
@@ -19,39 +21,33 @@ function doWork() {
     tags: { 'demo': 'correlation' },
   });
 
-  // 로그 출력 - logInjection이 true면 trace_id, span_id가 자동 삽입됨
   const traceId = span.context().toTraceId();
   const spanId = span.context().toSpanId();
-  
-  // JSON 형식 로그 (Datadog에서 자동 파싱)
+
+  // DD_LOGS_INJECTION=false 이면 dd 필드 없이 로그 → Trace와 correlation 안 됨 (의도적 broken 상태)
+  const ddField = logsInjectionEnabled ? { dd: { trace_id: traceId, span_id: spanId } } : {};
+
   const logEntry = {
     timestamp: new Date().toISOString(),
     level: 'info',
     service: 'correlation-demo',
     message: 'Processing user request',
-    dd: {
-      trace_id: traceId,
-      span_id: spanId,
-    },
+    ...ddField,
     custom: {
       user_id: Math.floor(Math.random() * 1000),
       action: 'heartbeat',
     },
   };
-  
+
   console.log(JSON.stringify(logEntry));
-  
-  // 에러 로그도 가끔 발생
+
   if (Math.random() < 0.2) {
     const errorLog = {
       timestamp: new Date().toISOString(),
       level: 'error',
       service: 'correlation-demo',
       message: 'Simulated error for demo',
-      dd: {
-        trace_id: traceId,
-        span_id: spanId,
-      },
+      ...ddField,
       error: {
         kind: 'SimulatedError',
         message: 'This is a test error',
