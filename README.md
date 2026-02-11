@@ -13,10 +13,13 @@ Leaderboard / challenges: Submit your solutions at the Fix It Faster leaderboard
    ```
 
 2. Copy `.env.example` to `.env.local` and set:
+   ```bash
+   cp .env.example .env.local
+   ```
    - `DATADOG_API_KEY` (required)
    - `DATADOG_APP_KEY` (required for log pipeline setup)
 
-3. Start the agent and all demos (including log pipeline setup):
+4. Start the agent and all demos (including log pipeline setup):
    ```bash
    npm run up:full
    ```
