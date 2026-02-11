@@ -2,7 +2,7 @@
 
 Datadog Agent + demo containers for the Fix It Faster hands-on. Use this repo to run the agent and scenario demos locally.
 
-Leaderboard / challenges: Submit your solutions at the Fix It Faster leaderboard URL (deployed separately): https://tse-fix-faster.vercel.app/
+Leaderboard / challenges: Submit your solutions at the Fix It Faster leaderboard URL (deployed separately): (https://dd-tse-fix-it-faster.vercel.app/)
 
 ## Quick start
 
