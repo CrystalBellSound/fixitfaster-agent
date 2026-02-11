@@ -24,15 +24,18 @@ function doWork() {
   const traceId = span.context().toTraceId();
   const spanId = span.context().toSpanId();
 
-  // DD_LOGS_INJECTION=false 이면 dd 필드 없이 로그 → Trace와 correlation 안 됨 (의도적 broken 상태)
-  const ddField = logsInjectionEnabled ? { dd: { trace_id: traceId, span_id: spanId } } : {};
+  // DD_LOGS_INJECTION=false 이면 trace_id/span_id 없음 → Trace와 correlation 안 됨 (의도적 broken 상태)
+  // Datadog 연동: 최상위 trace_id, span_id (문자열) 필요
+  const correlationFields = logsInjectionEnabled
+    ? { trace_id: String(traceId), span_id: String(spanId) }
+    : {};
 
   const logEntry = {
     timestamp: new Date().toISOString(),
     level: 'info',
     service: 'correlation-demo',
     message: 'Processing user request',
-    ...ddField,
+    ...correlationFields,
     custom: {
       user_id: Math.floor(Math.random() * 1000),
       action: 'heartbeat',
@@ -47,7 +50,7 @@ function doWork() {
       level: 'error',
       service: 'correlation-demo',
       message: 'Simulated error for demo',
-      ...ddField,
+      ...correlationFields,
       error: {
         kind: 'SimulatedError',
         message: 'This is a test error',
