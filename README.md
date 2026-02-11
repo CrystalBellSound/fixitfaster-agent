@@ -4,35 +4,43 @@ Datadog Agent + demo containers for the Fix It Faster hands-on. Use this repo to
 
 Leaderboard / challenges: Submit your solutions at the Fix It Faster leaderboard URL (deployed separately): https://tse-fix-faster.vercel.app/
 
-
 ## Quick start
 
-1. Clone the repo
+1. Clone the repo:
+   ```bash
    git clone https://github.com/CrystalBellSound/fixitfaster-agent.git
+   cd fixitfaster-agent
+   ```
 
-2  Copy `.env.example` to `.env.local` and set:
+2. Copy `.env.example` to `.env.local` and set:
    - `DATADOG_API_KEY` (required)
    - `DATADOG_APP_KEY` (required for log pipeline setup)
-3. Start the agent and demos:
+
+3. Start the agent and all demos (including log pipeline setup):
    ```bash
    npm run up:full
    ```
-4. Start the agent and stop:
-   ```bash
-   npm run agent:up
-   npm run agent:down
-   ```
+
 ## Commands
 
 | Command | Description |
 |--------|-------------|
-| `npm run up:fill` | Start Agent + trace-demo, log-demo, correlation-demo, metrics-demo, log pipeline |
+| `npm run up` | Start Agent + all demo containers |
+| `npm run down` | Stop and remove all containers |
+| `npm run up:full` | Start Agent + all demos + run log pipeline setup |
+| `npm run agent:up` | Start only the Agent container |
+| `npm run agent:down` | Stop only the Agent container |
+| `npm run agent:restart` | Stop and start only the Agent container |
+| `npm run logs` | Stream Agent logs (follow) |
+| `npm run pipeline:setup` | Create/update log-demo pipeline in Datadog (requires APP key in .env.local) |
 
 ## Containers
 
-- **agent** – Datadog Agent 7 (APM, Logs, DogStatsD)
-- **trace-demo** – Sends spans to the agent (APM scenario)
-- **log-demo** – Logs with Asia/Seoul timestamp (timezone scenario)
-- **correlation-demo** – Trace + log correlation
-- **metrics-demo** – Custom metrics via DogStatsD
-
+| Container | Image / Build | Description |
+|-----------|---------------|-------------|
+| **fixitfaster-agent** | `datadog/agent:7` | Datadog Agent: APM (8126), Logs, DogStatsD (8125), container discovery via docker.sock. Mounts `conf.d/nginx.d/autoconf.yaml` for Autodiscovery. |
+| **fixitfaster-trace-demo** | `./trace-demo` | Sends APM spans to the Agent every 5s (APM scenario). |
+| **fixitfaster-log-demo** | `./log-demo` | Outputs logs with Asia/Seoul timestamps every 5s (log timezone / pipeline scenario). |
+| **fixitfaster-correlation-demo** | `./correlation-demo` | Node.js + dd-trace; Trace–Log correlation scenario (labels: `com.datadoghq.ad.logs`). |
+| **fixitfaster-metrics-demo** | `./metrics-demo` | Sends custom DogStatsD metrics to the Agent every 5s (custom metrics scenario). |
+| **fixitfaster-ad-demo-nginx** | `nginx:alpine` | Nginx container for Autodiscovery scenario; Agent runs nginx check via mounted `conf.d/nginx.d/autoconf.yaml` (ad_identifiers). Serves `/nginx_status`. |
