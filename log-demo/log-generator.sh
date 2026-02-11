@@ -29,5 +29,5 @@ while true; do
       ;;
   esac
   
-  sleep 10
+  sleep 5
 done

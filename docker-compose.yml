@@ -1,41 +1,55 @@
-# Datadog Agent – 트레이스 + 로그 + 메트릭 수집 "정상 환경"용
-# 사용: .env.local 에 DATADOG_API_KEY 넣고 → npm run agent:up (또는 docker compose --env-file .env.local up -d)
+# Datadog Agent
+# Usage: Copy .env.example to .env.local, then add your API key and APP key.
+# After that, run `npm run up:full` to start the Agent and the demo scenarios.
+# When restarting the Agent after modifying a scenario, use:
+#   - `npm run agent:restart`
 #
-# 시나리오별 데모 컨테이너:
-#   - trace-demo: APM 트레이스 전송 (15초마다)
-#   - log-demo: 타임존 포함 로그 출력 (10초마다) → 파싱 시나리오용
-#   - correlation-demo: Trace-Log correlation (10초마다)
-#   - metrics-demo: DogStatsD 커스텀 메트릭 (10초마다)
+# Demo containers by scenario:
+#   - fixitfaster-agent-trace-demo: Sends APM traces (every 5 seconds)
+#   - fixitfaster-agent-log-demo: Outputs logs with timezone information (every 5 seconds)
+#   - fixitfaster-agent-correlation-demo: Trace–Log correlation demo (every 5 seconds)
+#   - fixitfaster-agent-metrics-demo: Sends custom DogStatsD metrics (every 5 seconds)
+#   - fixitfaster-ad-demo-nginx: Autodiscovery scenario (nginx check via conf.d/nginx.d/autoconf.yaml)
+#
+# Scenario Container commands:
+# Check each scenario - Helpful Commands
 
 services:
   agent:
     image: datadog/agent:7
     container_name: fixitfaster-agent
-    hostname: fixitfaster-agent
+    hostname: broken-agent
     environment:
       - DD_API_KEY=${DATADOG_API_KEY}
       - DD_SITE=${DATADOG_SITE:-datadoghq.com}
-      - DD_HOSTNAME=fixitfaster-agent
-      # APM (트레이스)
+      - DD_HOSTNAME=broken-agent
+
+      # APM (traces)
       - DD_APM_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true
+
       # Logs
       - DD_LOGS_ENABLED=true
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_CONTAINER_INCLUDE=*
       - DD_CONTAINER_EXCLUDE=name:fixitfaster-agent
-      # DogStatsD (커스텀 메트릭)
+
+      # DogStatsD (custom metrics)
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
-      # 기타
+
+      # Other
       - DD_PROCESS_AGENT_ENABLED=false
+
     ports:
-      - "8126:8126"   # APM trace intake
-      - "8125:8125/udp"  # DogStatsD
+      - "8126:8126"        # APM trace intake
+      - "8125:8125/udp"   # DogStatsD
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./conf.d/nginx.d/autoconf.yaml:/etc/datadog-agent/conf.d/nginx.d/autoconf.yaml:ro
     restart: unless-stopped
 
-  # [시나리오 1] APM 트레이스: 15초마다 Agent(8126)로 스팬 전송
+  # APM traces: send spans to the Agent (8126) every 5 seconds
   trace-demo:
     build: ./trace-demo
     container_name: fixitfaster-trace-demo
@@ -45,7 +59,7 @@ services:
       - agent
     restart: unless-stopped
 
-  # [시나리오 2] 로그 타임존 파싱: Asia/Seoul 타임스탬프 로그 출력
+  # Log timezone parsing: output logs with Asia/Seoul timestamps
   log-demo:
     build: ./log-demo
     container_name: fixitfaster-log-demo
@@ -55,20 +69,20 @@ services:
       com.datadoghq.ad.logs: '[{"source": "log-demo", "service": "log-demo"}]'
     restart: unless-stopped
 
-  # [시나리오 3] Trace-Log Correlation: 트레이스 + 로그에 trace_id 삽입
+  # Trace–Log correlation: inject trace_id into both traces and logs
   correlation-demo:
     build: ./correlation-demo
     container_name: fixitfaster-correlation-demo
     environment:
       - DD_ENV=development
-      - DD_LOGS_INJECTION=true
+      - DD_LOGS_INJECTION=false
     labels:
       com.datadoghq.ad.logs: '[{"source": "nodejs", "service": "correlation-demo"}]'
     depends_on:
       - agent
     restart: unless-stopped
 
-  # [시나리오 4] 커스텀 메트릭: DogStatsD로 메트릭 전송
+  # Custom metrics: send metrics via DogStatsD
   metrics-demo:
     build: ./metrics-demo
     container_name: fixitfaster-metrics-demo
@@ -77,3 +91,12 @@ services:
     depends_on:
       - agent
     restart: unless-stopped
+
+  # Autodiscovery scenario: nginx container; Agent runs nginx check via mounted conf (ad_identifiers)
+  ad-demo-nginx:
+    image: nginx:alpine
+    container_name: fixitfaster-ad-demo-nginx
+    volumes:
+      - ./ad-demo-nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+

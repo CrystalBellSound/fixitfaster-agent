@@ -6,10 +6,10 @@ const tracer = require('dd-trace').init({
   service: 'trace-demo',
   env: process.env.DD_ENV || 'development',
   hostname: 'agent',
-  port: 8126,
+  port: 8326,
 });
 
-const intervalMs = 15000; // 15초마다 스팬 1개
+const intervalMs = 5000; // every 5s
 
 function sendSpan() {
   const span = tracer.startSpan('trace-demo.heartbeat', {

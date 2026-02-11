@@ -1,0 +1,6 @@
+# Autodiscovery: run nginx check on containers matching ad_identifiers
+ad_identifiers:
+  - nginxx
+init_config: {}
+instances:
+  - nginx_status_url: http://%%host%%/nginx_status

@@ -11,7 +11,7 @@ const tracer = require('dd-trace').init({
   logInjection: process.env.DD_LOGS_INJECTION !== 'false', // 기본 true
 });
 
-const intervalMs = 10000; // 10초마다
+const intervalMs = 5000; // every 5s
 
 function doWork() {
   const span = tracer.startSpan('correlation-demo.process', {

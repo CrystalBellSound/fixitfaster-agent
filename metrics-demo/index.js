@@ -6,7 +6,7 @@
 const StatsD = require('hot-shots');
 
 const client = new StatsD({
-  host: 'agent',
+  host: 'localhost',
   port: 8125,
   prefix: 'fixitfaster.',
   globalTags: {
@@ -18,7 +18,7 @@ const client = new StatsD({
   },
 });
 
-const intervalMs = 10000; // 10초마다
+const intervalMs = 5000; // every 5s
 
 function sendMetrics() {
   // Gauge: 현재 값 (예: 메모리 사용량)
