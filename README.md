@@ -1,54 +1,117 @@
-# Fix It Faster – 랩 설정 가이드
+# Fix It Faster
 
-Datadog Agent + 데모 컨테이너로 **Fix It Faster** 챌린지를 진행하는 환경입니다.  
-제출·리더보드는 [Fix It Faster 앱](https://dd-tse-fix-it-faster.vercel.app)에서 합니다.
+Datadog 트러블슈팅 챌린지와 리더보드 앱입니다. 참가자는 랩 환경에서 문제를 해결한 뒤 **결과(artifact)** 를 제출하고, **선택적으로 원인/해결 요약**을 작성해 점수를 받습니다. 동점일 때는 **총 소요 시간**으로 순위가 갈립니다.
 
 ---
 
-## Codespace에서 할 일
+## 참가자용: 어떻게 플레이하나요?
 
-### 1. 최초 1회
+### 1. 랩 환경에서 챌린지 풀기
 
-API Key, App Key, 제출할 이름을 넣고 랩 실행. 아래 한 줄 실행 (**YOUR_KEY·내이름만 바꿔서**):
+- **GitHub Codespaces** 또는 별도 랩(EC2 등)에서 `fixitfaster-agent` 리포를 사용합니다.
+- 챌린지 페이지(예: Vercel에 배포된 URL)에서 시나리오를 고르고 타이머를 시작한 뒤, 랩에서 원인을 찾고 수정합니다.
+- 랩 설정·상세 절차는 랩 문서를 참고하세요.
+
+### 2. 제출 전에: 결과(artifact) 전송
+
+채점은 **Codespace/랩에서 보낸 결과만** 사용합니다. 제출 **전에** 터미널에서 아래처럼 한 번 실행하세요.
 
 ```bash
-echo 'DATADOG_API_KEY=YOUR_KEY' > .env.local && echo 'DATADOG_APP_KEY=YOUR_KEY' >> .env.local && echo '내이름' > ~/.fixitfaster-participant && npm run up:full
+curl -sL "https://raw.githubusercontent.com/victorjmlee/fixitfaster/main/lab-server/scripts/collect-and-send-artifacts.sh" -o /tmp/send-artifacts.sh
+FIXITFASTER_URL="https://여기에-배포된-앱-URL" CHALLENGE_ID="scenario-apm" bash /tmp/send-artifacts.sh
 ```
 
-### 2. 제출 전
+- `FIXITFASTER_URL`: 이 앱이 배포된 URL (예: `https://dd-tse-fix-it-faster.vercel.app`)
+- `CHALLENGE_ID`: 지금 풀고 있는 챌린지 ID (예: `scenario-infra`, `scenario-apm`)
+- 참가자 이름은 최초 설정 시 `~/.fixitfaster-participant`에 저장해 두면 스크립트가 자동으로 사용합니다.
 
-Codespace 터미널에서 아래 명령 실행. 이름은 최초 1회에 저장한 값을 씁니다. 이어서 [Vercel 앱](https://dd-tse-fix-it-faster.vercel.app)에서 같은 이름으로 제출.
+**중요:** 제출할 때 쓰는 **이름**이 artifact 전송 시 사용한 이름과 **완전히 같아야** 채점됩니다.
+
+### 3. 웹에서 제출
+
+- 챌린지 페이지에서 **같은 이름**을 선택/입력한 뒤 제출합니다.
+- **선택:** 「원인 요약」「해결 방법」을 작성하면 **솔루션 20점 만점**(AI 채점)을 받을 수 있습니다. 비우면 결과(artifact)만으로 채점됩니다.
+
+---
+
+## 채점·점수 안내
+
+- **결과(artifact) 점수**  
+  시나리오마다 다릅니다. 결과만 제출해도 아래 점수까지 받을 수 있습니다.
+
+  | 시나리오 | 결과 점수 | 만점 (결과 + 솔루션 20점) |
+  |----------|-----------|----------------------------|
+  | Infra (Hostname) | 50 | 70 |
+  | Autodiscovery | 60 | 80 |
+  | APM | 80 | 100 |
+  | Correlation | 50 | 70 |
+  | Custom metrics | 80 | 100 |
+  | Log timezone | 70 | 90 |
+
+- **솔루션(선택)**  
+  원인/해결을 작성하면 AI가 0~20점으로 채점합니다. 비우면 0점입니다.
+
+- **총점**  
+  `결과 점수 + 솔루션 점수` (최대 100점). 동점이면 **총 소요 시간이 짧은 사람**이 위로 올라갑니다.
+
+각 챌린지 페이지 상단에 해당 시나리오의 「결과 ○점 + 솔루션 20점 = 만점 ○점」 안내가 표시됩니다.
+
+---
+
+# Fix It Faster (English)
+
+Datadog troubleshooting challenges and leaderboard app. You solve issues in a lab environment, submit **results (artifacts)**, and optionally write a **cause/resolution summary** for extra points. Ties are broken by **total time** (faster wins).
+
+---
+
+## For participants: How do I play?
+
+### 1. Solve the challenge in the lab
+
+- Use the **fixitfaster-agent** repo in **GitHub Codespaces** or your own lab (e.g. EC2).
+- On the challenge page (e.g. the Vercel URL), pick a scenario, start the timer, then find and fix the issue in the lab.
+- See lab docs for setup and steps.
+
+### 2. Before submitting: Send your results (artifacts)
+
+Grading uses **only** the results sent from your Codespace/lab. **Before** you submit, run this once in the terminal:
 
 ```bash
-curl -sL "https://raw.githubusercontent.com/victorjmlee/fixitfaster/main/lab-server/scripts/collect-and-send-artifacts.sh" -o /tmp/send-artifacts.sh && FIXITFASTER_URL="https://dd-tse-fix-it-faster.vercel.app" CHALLENGE_ID="scenario-apm" bash /tmp/send-artifacts.sh
+curl -sL "https://raw.githubusercontent.com/victorjmlee/fixitfaster/main/lab-server/scripts/collect-and-send-artifacts.sh" -o /tmp/send-artifacts.sh
+FIXITFASTER_URL="https://your-deployed-app-url" CHALLENGE_ID="scenario-apm" bash /tmp/send-artifacts.sh
 ```
 
-`CHALLENGE_ID`만 현재 챌린지에 맞게 바꿔서 실행 (예: scenario-infra, scenario-apm, scenario-log-timezone 등).
+- `FIXITFASTER_URL`: The URL where this app is deployed (e.g. `https://dd-tse-fix-it-faster.vercel.app`)
+- `CHALLENGE_ID`: The challenge you’re on (e.g. `scenario-infra`, `scenario-apm`)
+- Your participant name is read from `~/.fixitfaster-participant` if you set it during initial setup.
+
+**Important:** The **name** you use when submitting must **exactly match** the name used when sending artifacts.
+
+### 3. Submit on the web
+
+- On the challenge page, enter or select the **same name** and submit.
+- **Optional:** If you fill in "Cause summary" and "Resolution", you can earn up to **20 solution points** (AI-graded). Leave them blank to be graded on results only.
 
 ---
 
-## 명령어
+## Scoring
 
-| 명령어 | 설명 |
-|--------|------|
-| `npm run up` | Agent + 모든 데모 컨테이너 시작 (필요 시 빌드) |
-| `npm run down` | 모든 컨테이너 중지 및 제거 |
-| `npm run agent:restart` | Agent 컨테이너만 재시작 |
-| `npm run up:full` | 시작 + Datadog 로그 파이프라인 설정 실행 |
+- **Result (artifact) score**  
+  Depends on the scenario. Submitting only results can earn up to:
 
----
+  | Scenario | Result score | Max (result + 20 solution) |
+  |----------|--------------|----------------------------|
+  | Infra (Hostname) | 50 | 70 |
+  | Autodiscovery | 60 | 80 |
+  | APM | 80 | 100 |
+  | Correlation | 50 | 70 |
+  | Custom metrics | 80 | 100 |
+  | Log timezone | 70 | 90 |
 
-## 컨테이너
+- **Solution (optional)**  
+  If you write cause and resolution, AI scores them 0–20. Empty = 0.
 
-| 컨테이너 | 이미지/빌드 | 설명 |
-|----------|-------------|------|
-| fixitfaster-agent | datadog/agent:7 | Agent: APM(8126), Logs, DogStatsD(8125), Autodiscovery |
-| fixitfaster-trace-demo | ./trace-demo | APM 시나리오 |
-| fixitfaster-log-demo | ./log-demo | 로그 타임존/파이프라인 시나리오 |
-| fixitfaster-correlation-demo | ./correlation-demo | Trace–Log correlation |
-| fixitfaster-metrics-demo | ./metrics-demo | 커스텀 메트릭 시나리오 |
-| fixitfaster-ad-demo-nginx | nginx:alpine | Autodiscovery용 Nginx |
+- **Total**  
+  `Result score + Solution score` (capped at 100). Ties are ranked by **shorter total time**.
 
----
-
-→ [챌린지·리더보드 열기](https://dd-tse-fix-it-faster.vercel.app)
+Each challenge page shows that scenario's "Result ○ pts + Solution 20 pts = ○ max" at the top.
