@@ -3,9 +3,12 @@
   "tasks": [
     {
       "label": "Open Fix It Faster (Vercel) in Simple Browser",
-      "command": "${input:openSimpleBrowser}",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:openSimpleBrowser}"],
       "runOptions": { "runOn": "folderOpen" },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
     }
   ],
   "inputs": [

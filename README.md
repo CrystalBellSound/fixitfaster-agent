@@ -1,49 +1,54 @@
-# Fix It Faster – Agent & Demos
+# Fix It Faster – 랩 설정 가이드
 
-Datadog Agent + demo containers for the Fix It Faster hands-on. Use this repo to run the agent and scenario demos locally.
+Datadog Agent + 데모 컨테이너로 **Fix It Faster** 챌린지를 진행하는 환경입니다.  
+제출·리더보드는 [Fix It Faster 앱](https://dd-tse-fix-it-faster.vercel.app)에서 합니다.
 
-Leaderboard / challenges: Submit your solutions at the Fix It Faster leaderboard URL (deployed separately): (https://dd-tse-fix-it-faster.vercel.app/)
+---
 
-## Quick start
+## Codespace에서 할 일
 
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/CrystalBellSound/fixitfaster-agent.git
-   cd fixitfaster-agent
-   ```
+### 1. 최초 1회
 
-2. Copy `.env.example` to `.env.local` and set:
-   ```bash
-   cp .env.example .env.local
-   ```
-   - `DATADOG_API_KEY` (required)
-   - `DATADOG_APP_KEY` (required for log pipeline setup)
+API Key, App Key, 제출할 이름을 넣고 랩 실행. 아래 한 줄 실행 (**YOUR_KEY·내이름만 바꿔서**):
 
-4. Start the agent and all demos (including log pipeline setup):
-   ```bash
-   npm run up:full
-   ```
+```bash
+echo 'DATADOG_API_KEY=YOUR_KEY' > .env.local && echo 'DATADOG_APP_KEY=YOUR_KEY' >> .env.local && echo '내이름' > ~/.fixitfaster-participant && npm run up:full
+```
 
-## Commands
+### 2. 제출 전
 
-| Command | Description |
-|--------|-------------|
-| `npm run up` | Start Agent + all demo containers |
-| `npm run down` | Stop and remove all containers |
-| `npm run up:full` | Start Agent + all demos + run log pipeline setup |
-| `npm run agent:up` | Start only the Agent container |
-| `npm run agent:down` | Stop only the Agent container |
-| `npm run agent:restart` | Stop and start only the Agent container |
-| `npm run logs` | Stream Agent logs (follow) |
-| `npm run pipeline:setup` | Create/update log-demo pipeline in Datadog (requires APP key in .env.local) |
+Codespace 터미널에서 아래 명령 실행. 이름은 최초 1회에 저장한 값을 씁니다. 이어서 [Vercel 앱](https://dd-tse-fix-it-faster.vercel.app)에서 같은 이름으로 제출.
 
-## Containers
+```bash
+curl -sL "https://raw.githubusercontent.com/victorjmlee/fixitfaster/main/lab-server/scripts/collect-and-send-artifacts.sh" -o /tmp/send-artifacts.sh && FIXITFASTER_URL="https://dd-tse-fix-it-faster.vercel.app" CHALLENGE_ID="scenario-apm" bash /tmp/send-artifacts.sh
+```
 
-| Container | Image / Build | Description |
-|-----------|---------------|-------------|
-| **fixitfaster-agent** | `datadog/agent:7` | Datadog Agent: APM (8126), Logs, DogStatsD (8125), container discovery via docker.sock. Mounts `conf.d/nginx.d/autoconf.yaml` for Autodiscovery. |
-| **fixitfaster-trace-demo** | `./trace-demo` | Sends APM spans to the Agent every 5s (APM scenario). |
-| **fixitfaster-log-demo** | `./log-demo` | Outputs logs with Asia/Seoul timestamps every 5s (log timezone / pipeline scenario). |
-| **fixitfaster-correlation-demo** | `./correlation-demo` | Node.js + dd-trace; Trace–Log correlation scenario (labels: `com.datadoghq.ad.logs`). |
-| **fixitfaster-metrics-demo** | `./metrics-demo` | Sends custom DogStatsD metrics to the Agent every 5s (custom metrics scenario). |
-| **fixitfaster-ad-demo-nginx** | `nginx:alpine` | Nginx container for Autodiscovery scenario; Agent runs nginx check via mounted `conf.d/nginx.d/autoconf.yaml` (ad_identifiers). Serves `/nginx_status`. |
+`CHALLENGE_ID`만 현재 챌린지에 맞게 바꿔서 실행 (예: scenario-infra, scenario-apm, scenario-log-timezone 등).
+
+---
+
+## 명령어
+
+| 명령어 | 설명 |
+|--------|------|
+| `npm run up` | Agent + 모든 데모 컨테이너 시작 (필요 시 빌드) |
+| `npm run down` | 모든 컨테이너 중지 및 제거 |
+| `npm run agent:restart` | Agent 컨테이너만 재시작 |
+| `npm run up:full` | 시작 + Datadog 로그 파이프라인 설정 실행 |
+
+---
+
+## 컨테이너
+
+| 컨테이너 | 이미지/빌드 | 설명 |
+|----------|-------------|------|
+| fixitfaster-agent | datadog/agent:7 | Agent: APM(8126), Logs, DogStatsD(8125), Autodiscovery |
+| fixitfaster-trace-demo | ./trace-demo | APM 시나리오 |
+| fixitfaster-log-demo | ./log-demo | 로그 타임존/파이프라인 시나리오 |
+| fixitfaster-correlation-demo | ./correlation-demo | Trace–Log correlation |
+| fixitfaster-metrics-demo | ./metrics-demo | 커스텀 메트릭 시나리오 |
+| fixitfaster-ad-demo-nginx | nginx:alpine | Autodiscovery용 Nginx |
+
+---
+
+→ [챌린지·리더보드 열기](https://dd-tse-fix-it-faster.vercel.app)
