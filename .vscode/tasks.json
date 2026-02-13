@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Fix It Faster (Vercel) in Simple Browser",
+      "command": "${input:openSimpleBrowser}",
+      "runOptions": { "runOn": "folderOpen" },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "openSimpleBrowser",
+      "type": "command",
+      "command": "simpleBrowser.show",
+      "args": ["https://dd-tse-fix-it-faster.vercel.app"]
+    }
+  ]
+}

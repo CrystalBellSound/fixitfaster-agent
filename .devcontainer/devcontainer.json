@@ -1,13 +1,14 @@
 {
   "name": "Fix It Faster Lab",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
-  "postCreateCommand": "npm ci",
+  "features": { "ghcr.io/devcontainers/features/docker-in-docker:2": {} },
+  "postCreateCommand": "npm ci && bash .devcontainer/setup-simple-browser-task.sh",
   "customizations": {
     "vscode": {
-      "extensions": []
+      "extensions": [],
+      "settings": {
+        "workbench.startupEditor": "none"
+      }
     }
   },
   "forwardPorts": [8126, 8125]
