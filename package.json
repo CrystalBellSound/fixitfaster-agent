@@ -7,6 +7,9 @@
     "up": "docker compose --env-file .env.local up -d --build",
     "down": "docker compose --env-file .env.local down",
     "logs": "docker compose --env-file .env.local logs -f agent",
+    "pipeline:setup": "bash scripts/setup-log-pipeline.sh",
+    "pipeline:setup:py": "python3 scripts/setup-log-pipeline.py",
+    "up:full": "npm run up && npm run pipeline:setup",
     "agent:up": "docker compose --env-file .env.local up -d agent",
     "agent:down": "docker compose --env-file .env.local stop agent",
     "agent:restart": "npm run agent:down && npm run agent:up"
