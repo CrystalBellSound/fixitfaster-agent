@@ -5,7 +5,12 @@
       "label": "Open Fix It Faster (Vercel) in Simple Browser",
       "type": "shell",
       "command": "echo",
-      "args": ["${input:openSimpleBrowser}"],
+      "args": ["Ready"],
+      "options": {
+        "env": {
+          "_trigger": "${input:openSimpleBrowser}"
+        }
+      },
       "runOptions": { "runOn": "folderOpen" },
       "problemMatcher": [],
       "presentation": { "reveal": "silent", "panel": "shared" }
