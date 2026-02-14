@@ -10,5 +10,5 @@ wait
 echo "[prebuild] All images pulled."
 
 echo "[prebuild] Pre-building demo containers..."
-docker compose build
+DOCKER_BUILDKIT=1 docker compose build --parallel
 echo "[prebuild] Done."
