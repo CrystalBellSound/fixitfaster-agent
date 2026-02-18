@@ -21,7 +21,7 @@
       "id": "openSimpleBrowser",
       "type": "command",
       "command": "simpleBrowser.show",
-      "args": ["https://dd-tse-fix-it-faster.vercel.app"]
+      "args": ["https://dd-tse-fix-it-faster.vercel.app?codespace=true"]
     }
   ]
 }
