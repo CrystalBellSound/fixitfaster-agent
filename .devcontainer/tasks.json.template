@@ -21,7 +21,7 @@
       "id": "openSimpleBrowser",
       "type": "command",
       "command": "simpleBrowser.show",
-      "args": ["https://dd-tse-fix-it-faster.vercel.app/challenges?codespace=${CODESPACE_NAME}"]
+      "args": ["__BROWSER_URL__"]
     }
   ]
 }
