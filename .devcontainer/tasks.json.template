@@ -14,15 +14,6 @@
       "runOptions": { "runOn": "folderOpen" },
       "problemMatcher": [],
       "presentation": { "reveal": "silent", "panel": "shared" }
-    },
-    {
-      "label": "Fix It Faster - Agent Server",
-      "type": "shell",
-      "command": "node artifact-server.js",
-      "runOptions": { "runOn": "folderOpen" },
-      "isBackground": true,
-      "problemMatcher": [],
-      "presentation": { "reveal": "always", "panel": "dedicated", "showReuseMessage": false }
     }
   ],
   "inputs": [
