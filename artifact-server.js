@@ -91,6 +91,44 @@ async function pushArtifacts() {
   }
 }
 
+// --- Command queue polling ---
+const CMD_POLL_INTERVAL = 3000;
+const { exec } = require("child_process");
+
+async function pollCommands() {
+  if (!CODESPACE_ID) return;
+
+  try {
+    const res = await fetch(
+      `${FIXITFASTER_URL}/api/commands?codespaceId=${encodeURIComponent(CODESPACE_ID)}`
+    );
+    if (!res.ok) return;
+    const { commands } = await res.json();
+    if (!commands?.length) return;
+
+    for (const cmd of commands) {
+      console.log("[commands] executing: %s (%s)", cmd.command, cmd.shell);
+      exec(cmd.shell, { cwd: REPO_DIR, timeout: 60000 }, async (err, stdout, stderr) => {
+        const output = (stdout || "") + (stderr ? `\n${stderr}` : "");
+        const status = err ? "error" : "done";
+        console.log("[commands] %s: %s (%d chars)", cmd.command, status, output.length);
+        try {
+          await fetch(`${FIXITFASTER_URL}/api/commands`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              codespaceId: CODESPACE_ID,
+              commandId: cmd.id,
+              status,
+              output: output.slice(0, 5000),
+            }),
+          });
+        } catch {}
+      });
+    }
+  } catch {}
+}
+
 // --- HTTP server ---
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -135,6 +173,8 @@ server.listen(PORT, () => {
     );
     pushArtifacts();
     setInterval(pushArtifacts, PUSH_INTERVAL);
+    pollCommands();
+    setInterval(pollCommands, CMD_POLL_INTERVAL);
   } else {
     console.log(
       "[artifact-server] Not in Codespace (CODESPACE_NAME not set) — auto-push disabled."
