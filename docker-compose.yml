@@ -1,18 +1,6 @@
-# Datadog Agent
 # Usage: Copy .env.example to .env.local, then add your API key and APP key.
-# After that, run `npm run up:full` to start the Agent and the demo scenarios.
-# When restarting the Agent after modifying a scenario, use:
-#   - `npm run agent:restart`
-#
-# Demo containers by scenario:
-#   - fixitfaster-agent-trace-demo: Sends APM traces (every 5 seconds)
-#   - fixitfaster-agent-log-demo: Outputs logs with timezone information (every 5 seconds)
-#   - fixitfaster-agent-correlation-demo: Trace–Log correlation demo (every 5 seconds)
-#   - fixitfaster-agent-metrics-demo: Sends custom DogStatsD metrics (every 5 seconds)
-#   - fixitfaster-ad-demo-nginx: Autodiscovery scenario (nginx check via conf.d/nginx.d/autoconf.yaml)
-#
-# Scenario Container commands:
-# Check each scenario - Helpful Commands
+# Run `npm run up:full` to start all services.
+# Restart after changes: `npm run agent:restart`
 
 services:
   agent:
@@ -24,32 +12,27 @@ services:
       - DD_SITE=${DATADOG_SITE:-datadoghq.com}
       - DD_HOSTNAME=broken-agent
 
-      # APM (traces)
       - DD_APM_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true
 
-      # Logs
       - DD_LOGS_ENABLED=true
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_CONTAINER_INCLUDE=*
       - DD_CONTAINER_EXCLUDE=name:fixitfaster-agent
 
-      # DogStatsD (custom metrics)
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
 
-      # Other
       - DD_PROCESS_AGENT_ENABLED=false
 
     ports:
-      - "8126:8126"        # APM trace intake
-      - "8125:8125/udp"   # DogStatsD
+      - "8126:8126"
+      - "8125:8125/udp"
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./conf.d/nginx.d/autoconf.yaml:/etc/datadog-agent/conf.d/nginx.d/autoconf.yaml:ro
     restart: unless-stopped
 
-  # APM traces: send spans to the Agent (8126) every 5 seconds
   trace-demo:
     build: ./trace-demo
     container_name: fixitfaster-trace-demo
@@ -59,7 +42,6 @@ services:
       - agent
     restart: unless-stopped
 
-  # Log timezone parsing: output logs with Asia/Seoul timestamps
   log-demo:
     build: ./log-demo
     container_name: fixitfaster-log-demo
@@ -69,7 +51,6 @@ services:
       com.datadoghq.ad.logs: '[{"source": "log-demo", "service": "log-demo"}]'
     restart: unless-stopped
 
-  # Trace–Log correlation: inject trace_id into both traces and logs
   correlation-demo:
     build: ./correlation-demo
     container_name: fixitfaster-correlation-demo
@@ -82,7 +63,6 @@ services:
       - agent
     restart: unless-stopped
 
-  # Custom metrics: send metrics via DogStatsD
   metrics-demo:
     build: ./metrics-demo
     container_name: fixitfaster-metrics-demo
@@ -92,7 +72,6 @@ services:
       - agent
     restart: unless-stopped
 
-  # Autodiscovery scenario: nginx container; Agent runs nginx check via mounted conf (ad_identifiers)
   ad-demo-nginx:
     image: nginx:alpine
     container_name: fixitfaster-ad-demo-nginx

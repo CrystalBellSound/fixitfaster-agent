@@ -1,8 +1,3 @@
-/**
- * DogStatsD 커스텀 메트릭 데모
- * - Agent의 8125 포트로 메트릭 전송
- * - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true 필요
- */
 const StatsD = require('hot-shots');
 
 const client = new StatsD({
@@ -43,7 +38,7 @@ function sendMetrics() {
 sendMetrics();
 setInterval(sendMetrics, intervalMs);
 
-console.log(`[metrics-demo] sending custom metrics every ${intervalMs / 1000}s to agent:8125`);
+console.log(`[metrics-demo] sending custom metrics every ${intervalMs / 1000}s`);
 
 // 종료 시 클라이언트 정리
 process.on('SIGTERM', () => {

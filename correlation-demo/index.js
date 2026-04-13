@@ -1,8 +1,3 @@
-/**
- * Trace-Log Correlation 데모
- * - 트레이스 전송 + 로그에 trace_id/span_id 삽입
- * - DD_LOGS_INJECTION=true 시 자동으로 correlation 됨
- */
 const logsInjectionEnabled = process.env.DD_LOGS_INJECTION !== 'false';
 
 const tracer = require('dd-trace').init({
@@ -24,8 +19,6 @@ function doWork() {
   const traceId = span.context().toTraceId();
   const spanId = span.context().toSpanId();
 
-  // DD_LOGS_INJECTION=false 이면 trace_id/span_id 없음 → Trace와 correlation 안 됨 (의도적 broken 상태)
-  // Datadog 연동: 최상위 trace_id, span_id (문자열) 필요
   const correlationFields = logsInjectionEnabled
     ? { trace_id: String(traceId), span_id: String(spanId) }
     : {};

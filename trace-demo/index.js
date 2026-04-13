@@ -1,7 +1,3 @@
-/**
- * 로그 데모처럼 주기적으로 트레이스를 Agent(8126)로 전송.
- * Docker Compose 에서 Agent 서비스 이름이 "agent" 이므로 hostname: 'agent'
- */
 const tracer = require('dd-trace').init({
   service: 'trace-demo',
   env: process.env.DD_ENV || 'development',
@@ -23,4 +19,4 @@ function sendSpan() {
 sendSpan();
 setInterval(sendSpan, intervalMs);
 
-console.log(`[trace-demo] sending trace every ${intervalMs / 1000}s to agent:8126`);
+console.log(`[trace-demo] sending trace every ${intervalMs / 1000}s`);

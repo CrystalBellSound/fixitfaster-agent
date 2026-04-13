@@ -1,4 +1,3 @@
-# Autodiscovery: run nginx check on containers matching ad_identifiers
 ad_identifiers:
   - nginxx
 init_config: {}

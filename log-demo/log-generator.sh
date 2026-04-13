@@ -1,9 +1,4 @@
 #!/bin/sh
-# 로그 타임존 파싱 시나리오용
-# - 로그에 Asia/Seoul 타임존 타임스탬프 출력
-# - Datadog 파이프라인에서 올바른 타임존 파싱 필요
-
-# TZ 환경변수로 타임존 설정 (기본: Asia/Seoul)
 export TZ="${LOG_TIMEZONE:-Asia/Seoul}"
 
 echo "[log-demo] Starting with timezone: $TZ"

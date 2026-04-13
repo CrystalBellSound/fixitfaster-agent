@@ -12,5 +12,11 @@
       }
     }
   },
-  "forwardPorts": [8126, 8125]
+  "forwardPorts": [8126, 8125, 4000],
+  "portsAttributes": {
+    "4000": {
+      "label": "Artifact Server",
+      "visibility": "public"
+    }
+  }
 }
