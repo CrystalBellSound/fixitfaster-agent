@@ -4,6 +4,7 @@
   "features": { "ghcr.io/devcontainers/features/docker-in-docker:2": {} },
   "onCreateCommand": "bash .devcontainer/prebuild.sh",
   "postCreateCommand": "bash .devcontainer/setup-simple-browser-task.sh",
+  "postStartCommand": "node artifact-server.js > /tmp/artifact-server.log 2>&1 &",
   "customizations": {
     "vscode": {
       "extensions": [],
