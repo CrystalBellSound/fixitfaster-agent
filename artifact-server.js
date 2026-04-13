@@ -63,6 +63,15 @@ let lastPushHash = "";
 async function pushArtifacts() {
   if (!CODESPACE_ID) return;
 
+  // Always send heartbeat (even if artifacts unchanged)
+  try {
+    await fetch(`${FIXITFASTER_URL}/api/heartbeat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codespaceId: CODESPACE_ID }),
+    });
+  } catch {}
+
   try {
     const artifacts = collectArtifacts();
     const hash = require("crypto")
