@@ -3,8 +3,8 @@
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
   "features": { "ghcr.io/devcontainers/features/docker-in-docker:2": {} },
   "onCreateCommand": "bash .devcontainer/prebuild.sh",
-  "postCreateCommand": "bash .devcontainer/setup-simple-browser-task.sh",
-  "postStartCommand": "git pull --ff-only 2>/dev/null; bash .devcontainer/setup-simple-browser-task.sh; node artifact-server.js > /tmp/artifact-server.log 2>&1 &",
+  "postCreateCommand": "bash .devcontainer/setup-simple-browser-task.sh; bash .devcontainer/start-artifact-server.sh",
+  "postStartCommand": "git pull --ff-only 2>/dev/null; bash .devcontainer/post-start.sh",
   "customizations": {
     "vscode": {
       "extensions": [],

@@ -118,6 +118,7 @@ async function markCommand(cmdId, status, output) {
 
 async function pollCommands() {
   if (!CODESPACE_ID || commandBusy) return;
+  commandBusy = true;
 
   try {
     const res = await fetch(
@@ -128,15 +129,12 @@ async function pollCommands() {
     if (!commands?.length) return;
 
     for (const cmd of commands) {
-      // Mark as running immediately to prevent duplicate execution
-      commandBusy = true;
       await markCommand(cmd.id, "running", "");
 
       if (cmd.command === "force-push") {
         lastPushHash = "";
         await pushArtifacts();
         await markCommand(cmd.id, "done", "pushed");
-        commandBusy = false;
         continue;
       }
 
@@ -144,7 +142,6 @@ async function pollCommands() {
         const { apiKey, appKey } = cmd.payload || {};
         if (!apiKey) {
           await markCommand(cmd.id, "error", "Missing apiKey in payload");
-          commandBusy = false;
           continue;
         }
         console.log("[commands] running setup...");
@@ -160,7 +157,6 @@ async function pollCommands() {
           const errOutput = setupOutput + "\n" + (err.stdout || "") + "\n" + (err.stderr || "") + "\n" + err.message;
           await markCommand(cmd.id, "error", errOutput);
         }
-        commandBusy = false;
         continue;
       }
 
@@ -174,9 +170,10 @@ async function pollCommands() {
         console.log("[commands] %s: error", cmd.command);
         await markCommand(cmd.id, "error", output);
       }
-      commandBusy = false;
     }
-  } catch {}
+  } catch {} finally {
+    commandBusy = false;
+  }
 }
 
 // --- HTTP server ---
