@@ -8,3 +8,8 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 
 bash "$DIR/setup-simple-browser-task.sh" || true
 bash "$DIR/start-artifact-server.sh"
+
+# Force port 4000 to public (devcontainer.json setting can be unreliable)
+if [ -n "$CODESPACE_NAME" ] && command -v gh &>/dev/null; then
+  gh codespace ports visibility 4000:public -c "$CODESPACE_NAME" 2>/dev/null || true
+fi
