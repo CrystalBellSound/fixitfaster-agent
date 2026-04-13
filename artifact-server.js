@@ -144,18 +144,21 @@ async function pollCommands() {
           await markCommand(cmd.id, "error", "Missing apiKey in payload");
           continue;
         }
-        console.log("[commands] running setup...");
+        console.log("\n========================================");
+        console.log("[setup] Writing .env.local...");
         const envContent = `DATADOG_API_KEY=${apiKey}\nDATADOG_APP_KEY=${appKey || ""}\n`;
         fs.writeFileSync(path.join(REPO_DIR, ".env.local"), envContent);
-        let setupOutput = ".env.local written\n";
+        console.log("[setup] Starting Docker containers...");
+        console.log("========================================\n");
         try {
-          setupOutput += execSync("npm run up", { cwd: REPO_DIR, timeout: 120000, encoding: "utf-8" });
-          setupOutput += "\n";
-          setupOutput += execSync("npm run pipeline:setup", { cwd: REPO_DIR, timeout: 30000, encoding: "utf-8" });
-          await markCommand(cmd.id, "done", setupOutput);
+          execSync("npm run up", { cwd: REPO_DIR, timeout: 120000, stdio: "inherit" });
+          console.log("\n[setup] Running pipeline setup...");
+          execSync("npm run pipeline:setup", { cwd: REPO_DIR, timeout: 30000, stdio: "inherit" });
+          console.log("\n[setup] Done! Environment is ready.\n");
+          await markCommand(cmd.id, "done", "Setup complete");
         } catch (err) {
-          const errOutput = setupOutput + "\n" + (err.stdout || "") + "\n" + (err.stderr || "") + "\n" + err.message;
-          await markCommand(cmd.id, "error", errOutput);
+          console.error("\n[setup] Failed:", err.message);
+          await markCommand(cmd.id, "error", err.message);
         }
         continue;
       }
