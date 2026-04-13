@@ -2,7 +2,7 @@
 set -e
 
 CODESPACE="${CODESPACE_NAME:-local}"
-BROWSER_URL="https://dd-tse-fix-it-faster.vercel.app/challenges?codespace=$(node -e "process.stdout.write(encodeURIComponent(process.argv[1]))" "$CODESPACE")"
+BROWSER_URL="https://dd-tse-fix-it-faster.vercel.app/?codespace=$(node -e "process.stdout.write(encodeURIComponent(process.argv[1]))" "$CODESPACE")"
 
 mkdir -p .vscode
 node -e "
