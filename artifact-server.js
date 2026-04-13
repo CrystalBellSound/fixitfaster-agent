@@ -104,8 +104,20 @@ async function pushArtifacts() {
 const CMD_POLL_INTERVAL = 3000;
 const { exec } = require("child_process");
 
+let commandBusy = false;
+
+async function markCommand(cmdId, status, output) {
+  try {
+    await fetch(`${FIXITFASTER_URL}/api/commands`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmdId, status, output: (output || "").slice(0, 5000) }),
+    });
+  } catch {}
+}
+
 async function pollCommands() {
-  if (!CODESPACE_ID) return;
+  if (!CODESPACE_ID || commandBusy) return;
 
   try {
     const res = await fetch(
@@ -116,31 +128,23 @@ async function pollCommands() {
     if (!commands?.length) return;
 
     for (const cmd of commands) {
-      // Special command: force-push artifacts immediately
+      // Mark as running immediately to prevent duplicate execution
+      commandBusy = true;
+      await markCommand(cmd.id, "running", "");
+
       if (cmd.command === "force-push") {
-        lastPushHash = ""; // reset to force push even if unchanged
+        lastPushHash = "";
         await pushArtifacts();
-        try {
-          await fetch(`${FIXITFASTER_URL}/api/commands`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "done", output: "pushed" }),
-          });
-        } catch {}
+        await markCommand(cmd.id, "done", "pushed");
+        commandBusy = false;
         continue;
       }
 
-      // Special command: setup — write .env.local, start docker, run pipeline setup
       if (cmd.command === "setup") {
         const { apiKey, appKey } = cmd.payload || {};
         if (!apiKey) {
-          try {
-            await fetch(`${FIXITFASTER_URL}/api/commands`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "error", output: "Missing apiKey in payload" }),
-            });
-          } catch {}
+          await markCommand(cmd.id, "error", "Missing apiKey in payload");
+          commandBusy = false;
           continue;
         }
         console.log("[commands] running setup...");
@@ -151,44 +155,26 @@ async function pollCommands() {
           setupOutput += execSync("npm run up", { cwd: REPO_DIR, timeout: 120000, encoding: "utf-8" });
           setupOutput += "\n";
           setupOutput += execSync("npm run pipeline:setup", { cwd: REPO_DIR, timeout: 30000, encoding: "utf-8" });
-          try {
-            await fetch(`${FIXITFASTER_URL}/api/commands`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "done", output: setupOutput.slice(0, 5000) }),
-            });
-          } catch {}
+          await markCommand(cmd.id, "done", setupOutput);
         } catch (err) {
           const errOutput = setupOutput + "\n" + (err.stdout || "") + "\n" + (err.stderr || "") + "\n" + err.message;
-          try {
-            await fetch(`${FIXITFASTER_URL}/api/commands`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "error", output: errOutput.slice(0, 5000) }),
-            });
-          } catch {}
+          await markCommand(cmd.id, "error", errOutput);
         }
+        commandBusy = false;
         continue;
       }
 
       console.log("[commands] executing: %s (%s)", cmd.command, cmd.shell);
-      exec(cmd.shell, { cwd: REPO_DIR, timeout: 60000 }, async (err, stdout, stderr) => {
-        const output = (stdout || "") + (stderr ? `\n${stderr}` : "");
-        const status = err ? "error" : "done";
-        console.log("[commands] %s: %s (%d chars)", cmd.command, status, output.length);
-        try {
-          await fetch(`${FIXITFASTER_URL}/api/commands`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              codespaceId: CODESPACE_ID,
-              commandId: cmd.id,
-              status,
-              output: output.slice(0, 5000),
-            }),
-          });
-        } catch {}
-      });
+      try {
+        const output = execSync(cmd.shell, { cwd: REPO_DIR, timeout: 60000, encoding: "utf-8" });
+        console.log("[commands] %s: done (%d chars)", cmd.command, output.length);
+        await markCommand(cmd.id, "done", output);
+      } catch (err) {
+        const output = (err.stdout || "") + "\n" + (err.stderr || "") + "\n" + err.message;
+        console.log("[commands] %s: error", cmd.command);
+        await markCommand(cmd.id, "error", output);
+      }
+      commandBusy = false;
     }
   } catch {}
 }
