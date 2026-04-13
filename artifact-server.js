@@ -182,7 +182,7 @@ async function pollCommands() {
 // --- HTTP server ---
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
@@ -206,6 +206,42 @@ const server = http.createServer((req, res) => {
       res.writeHead(500, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ error: err.message }));
     }
+  }
+
+  // POST /setup — browser sends API keys, server creates .env.local + starts docker
+  if (req.method === "POST" && url.pathname === "/setup") {
+    let body = "";
+    req.on("data", (chunk) => { body += chunk; });
+    req.on("end", async () => {
+      try {
+        const { apiKey, appKey } = JSON.parse(body);
+        if (!apiKey) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          return res.end(JSON.stringify({ error: "apiKey required" }));
+        }
+
+        console.log("\n========================================");
+        console.log("[setup] Writing .env.local...");
+        const envContent = `DATADOG_API_KEY=${apiKey}\nDATADOG_APP_KEY=${appKey || ""}\n`;
+        fs.writeFileSync(path.join(REPO_DIR, ".env.local"), envContent);
+
+        console.log("[setup] Starting Docker containers...");
+        console.log("========================================\n");
+        execSync("npm run up", { cwd: REPO_DIR, timeout: 120000, stdio: "inherit" });
+
+        console.log("\n[setup] Running pipeline setup...");
+        execSync("npm run pipeline:setup", { cwd: REPO_DIR, timeout: 30000, stdio: "inherit" });
+
+        console.log("\n[setup] Done! Environment is ready.\n");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (err) {
+        console.error("\n[setup] Failed:", err.message);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
   }
 
   res.writeHead(404);
