@@ -116,6 +116,61 @@ async function pollCommands() {
     if (!commands?.length) return;
 
     for (const cmd of commands) {
+      // Special command: force-push artifacts immediately
+      if (cmd.command === "force-push") {
+        lastPushHash = ""; // reset to force push even if unchanged
+        await pushArtifacts();
+        try {
+          await fetch(`${FIXITFASTER_URL}/api/commands`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "done", output: "pushed" }),
+          });
+        } catch {}
+        continue;
+      }
+
+      // Special command: setup — write .env.local, start docker, run pipeline setup
+      if (cmd.command === "setup") {
+        const { apiKey, appKey } = cmd.payload || {};
+        if (!apiKey) {
+          try {
+            await fetch(`${FIXITFASTER_URL}/api/commands`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "error", output: "Missing apiKey in payload" }),
+            });
+          } catch {}
+          continue;
+        }
+        console.log("[commands] running setup...");
+        const envContent = `DATADOG_API_KEY=${apiKey}\nDATADOG_APP_KEY=${appKey || ""}\n`;
+        fs.writeFileSync(path.join(REPO_DIR, ".env.local"), envContent);
+        let setupOutput = ".env.local written\n";
+        try {
+          setupOutput += execSync("npm run up", { cwd: REPO_DIR, timeout: 120000, encoding: "utf-8" });
+          setupOutput += "\n";
+          setupOutput += execSync("npm run pipeline:setup", { cwd: REPO_DIR, timeout: 30000, encoding: "utf-8" });
+          try {
+            await fetch(`${FIXITFASTER_URL}/api/commands`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "done", output: setupOutput.slice(0, 5000) }),
+            });
+          } catch {}
+        } catch (err) {
+          const errOutput = setupOutput + "\n" + (err.stdout || "") + "\n" + (err.stderr || "") + "\n" + err.message;
+          try {
+            await fetch(`${FIXITFASTER_URL}/api/commands`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ codespaceId: CODESPACE_ID, commandId: cmd.id, status: "error", output: errOutput.slice(0, 5000) }),
+            });
+          } catch {}
+        }
+        continue;
+      }
+
       console.log("[commands] executing: %s (%s)", cmd.command, cmd.shell);
       exec(cmd.shell, { cwd: REPO_DIR, timeout: 60000 }, async (err, stdout, stderr) => {
         const output = (stdout || "") + (stderr ? `\n${stderr}` : "");
