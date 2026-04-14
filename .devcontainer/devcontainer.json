@@ -6,7 +6,7 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "onCreateCommand": "bash .devcontainer/prebuild.sh",
-  "postCreateCommand": "bash .devcontainer/setup-simple-browser-task.sh; bash .devcontainer/start-artifact-server.sh",
+  "postCreateCommand": "bash .devcontainer/setup-simple-browser-task.sh",
   "postStartCommand": "git pull --ff-only 2>/dev/null; bash .devcontainer/post-start.sh",
   "customizations": {
     "vscode": {
