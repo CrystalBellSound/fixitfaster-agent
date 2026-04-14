@@ -254,6 +254,16 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log("[artifact-server] http://localhost:%d/artifacts", PORT);
   if (CODESPACE_ID) {
+    // Force port to public (devcontainer.json portsAttributes is unreliable)
+    try {
+      execSync(`gh codespace ports visibility ${PORT}:public -c ${CODESPACE_ID}`, {
+        timeout: 15000, encoding: "utf-8", stdio: "pipe",
+      });
+      console.log("[artifact-server] Port %d set to public", PORT);
+    } catch (e) {
+      console.warn("[artifact-server] Failed to set port public:", e.message?.split("\n")[0]);
+    }
+
     console.log(
       "[artifact-server] auto-push every %ds → %s (codespace: %s)",
       PUSH_INTERVAL / 1000,
