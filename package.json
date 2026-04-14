@@ -9,7 +9,7 @@
     "logs": "docker compose --env-file .env.local logs -f agent",
     "pipeline:setup": "bash scripts/setup-log-pipeline.sh",
     "pipeline:setup:py": "python3 scripts/setup-log-pipeline.py",
-    "up:full": "npm run up && npm run pipeline:setup",
+    "up:full": "npm run up && npm run pipeline:setup && bash .devcontainer/start-artifact-server.sh",
     "artifact-server": "node artifact-server.js",
     "agent:up": "docker compose --env-file .env.local up -d agent",
     "agent:down": "docker compose --env-file .env.local stop agent",

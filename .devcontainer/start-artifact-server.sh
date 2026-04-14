@@ -1,13 +1,27 @@
 #!/usr/bin/env bash
-# Idempotent artifact-server starter.
+# Idempotent artifact-server starter — auto-restarts on crash.
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PID_FILE="/tmp/artifact-server-wrapper.pid"
 
-# Kill existing artifact-server if running
-if pkill -f "node.*artifact-server\.js" 2>/dev/null; then
-  echo "[start-artifact-server] Killed existing instance"
-  sleep 1
+# Kill existing wrapper and node process
+if [ -f "$PID_FILE" ]; then
+  WPID=$(cat "$PID_FILE")
+  kill "$WPID" 2>/dev/null && echo "[start-artifact-server] Killed wrapper PID=$WPID"
+  rm -f "$PID_FILE"
 fi
+pkill -f "node.*artifact-server\.js" 2>/dev/null
+sleep 1
 
-cd "$REPO_DIR"
-nohup node artifact-server.js > /tmp/artifact-server.log 2>&1 &
-echo "[start-artifact-server] Started (PID=$!, dir=$REPO_DIR, log=/tmp/artifact-server.log)"
+# Start in a restart loop so crashes are self-healing
+(
+  while true; do
+    echo "[artifact-server] starting at $(date)"
+    node "$REPO_DIR/artifact-server.js"
+    EXIT=$?
+    echo "[artifact-server] exited (code=$EXIT) — restarting in 5s"
+    sleep 5
+  done
+) >> /tmp/artifact-server.log 2>&1 &
+
+echo $! > "$PID_FILE"
+echo "[start-artifact-server] wrapper PID=$(cat $PID_FILE) dir=$REPO_DIR log=/tmp/artifact-server.log"
