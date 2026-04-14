@@ -121,12 +121,15 @@ async function pollCommands() {
   commandBusy = true;
 
   try {
-    const res = await fetch(
-      `${FIXITFASTER_URL}/api/commands?codespaceId=${encodeURIComponent(CODESPACE_ID)}`
-    );
-    if (!res.ok) return;
+    const cmdUrl = `${FIXITFASTER_URL}/api/commands?codespaceId=${encodeURIComponent(CODESPACE_ID)}`;
+    const res = await fetch(cmdUrl);
+    if (!res.ok) {
+      console.warn("[commands] poll failed: HTTP %d", res.status);
+      return;
+    }
     const { commands } = await res.json();
     if (!commands?.length) return;
+    console.log("[commands] found %d pending command(s)", commands.length);
 
     for (const cmd of commands) {
       await markCommand(cmd.id, "running", "");
@@ -174,7 +177,7 @@ async function pollCommands() {
         await markCommand(cmd.id, "error", output);
       }
     }
-  } catch {} finally {
+  } catch (e) { console.warn("[commands] poll error:", e.message || e); } finally {
     commandBusy = false;
   }
 }
