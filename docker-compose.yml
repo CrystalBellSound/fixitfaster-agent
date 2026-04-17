@@ -8,7 +8,6 @@
 #   - fixitfaster-correlation-demo: Trace–Log correlation demo (every 5 seconds)
 #   - fixitfaster-metrics-demo: Sends custom DogStatsD metrics (every 5 seconds)
 #   - fixitfaster-ad-demo-nginx: Autodiscovery scenario (nginx check via conf.d/nginx.d/autoconf.yaml)
-#   - fixitfaster-app-demo: Web app log simulator — infra+logs exclusion scenario (scenario-container-logs-exclusion)
 
 services:
   agent:
@@ -86,14 +85,6 @@ services:
       - DD_ENV=development
     depends_on:
       - agent
-    restart: unless-stopped
-
-  # Web app log simulator: HTTP access logs for container exclusion scenario
-  app-demo:
-    build: ./app-demo
-    container_name: fixitfaster-app-demo
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "app-demo", "service": "app-demo"}]'
     restart: unless-stopped
 
   # Autodiscovery scenario: nginx container; Agent runs nginx check via mounted conf (ad_identifiers)
