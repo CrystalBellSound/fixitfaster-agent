@@ -24,6 +24,8 @@ services:
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
 
       - DD_PROCESS_AGENT_ENABLED=false
+      - DD_CONTAINER_EXCLUDE_LOGS=name:fixitfaster-infra-demo
+      - DD_CONTAINER_EXCLUDE_METRICS=name:fixitfaster-infra-demo
 
     ports:
       - "8126:8126"
