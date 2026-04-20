@@ -105,21 +105,12 @@ services:
     volumes:
       - ./ad-demo-nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
-    build: ./openmetrics-v2-app
-    container_name: fixitfaster-openmetrics-v2-app
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
 
-{
-  "serviceName": "vector",
-  "image": "timberio/vector:0.34.0-alpine",
-  "container_name": "fixitfaster-vector-proxy",
-  "ports": [
-    "8125:8125/udp"
-  ],
-  "volumes": [
-    "./conf.d/vector/vector.toml:/etc/vector/vector.toml:ro"
-  ],
-  "restart": "unless-stopped"
-}
+  vector:
+    image: timberio/vector:0.34.0-alpine
+    container_name: fixitfaster-vector-proxy
+    ports:
+      - "8125:8125/udp"
+    volumes:
+      - ./conf.d/vector/vector.toml:/etc/vector/vector.toml:ro
+    restart: unless-stopped
