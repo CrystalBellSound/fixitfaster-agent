@@ -1,0 +1,10 @@
+init_config:
+
+instances:
+  - openmetrics_endpoint: http://openmetrics-v2-app:8080/metricss # Intentional typo
+    namespace: openmetrics_v2_app
+    metrics:
+      - openmetrics_v2_app_requests_total
+      - openmetrics_v2_app_requests_in_progress
+      - openmetrics_v2_app_request_latency_seconds
+      - openmetrics_v2_app_custom_value
