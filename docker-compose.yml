@@ -19,6 +19,7 @@ services:
       - DD_API_KEY=${DATADOG_API_KEY}
       - DD_SITE=${DATADOG_SITE:-datadoghq.com}
       - DD_HOSTNAME=broken-agent
+      - DD_API_KEY=dd_invalid_api_key_1234567890
 
       # APM (traces)
       - DD_APM_ENABLED=true
