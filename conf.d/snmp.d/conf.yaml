@@ -1,0 +1,8 @@
+init_config:
+instances
+  - ip_address: 127.0.0.1
+    community_string: public
+    port: 161
+    snmp_version: 2c
+    tags:
+      - snmp_device:test_device
