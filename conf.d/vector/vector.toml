@@ -1,3 +1,0 @@
-[sources.dogstatsd_source]
-  type = "dogstatsd"
-  address = "0.0.0.0:8125"
